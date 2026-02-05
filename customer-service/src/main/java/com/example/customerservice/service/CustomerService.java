@@ -1,15 +1,16 @@
 package com.example.customerservice.service;
 
-import com.example.customerservice.domain.*;
-import com.example.customerservice.dto.request.CustomerRequestDTO;
+import com.example.customerservice.domain.CustomerEntity;
+import com.example.customerservice.domain.PersonEntity;
+import com.example.customerservice.dto.request.CustomerCreateRequestDTO;
+import com.example.customerservice.dto.request.CustomerUpdateRequestDTO;
 import com.example.customerservice.dto.response.CustomerResponseDTO;
 import com.example.customerservice.exception.BadRequestException;
 import com.example.customerservice.exception.NotFoundException;
 import com.example.customerservice.mapper.CustomerMapper;
+import com.example.customerservice.messaging.CustomerEventPublisher;
 import com.example.customerservice.repository.CustomerRepository;
 import com.example.customerservice.repository.PersonRepository;
-import com.example.customerservice.dto.request.CustomerCreateRequestDTO;
-import com.example.customerservice.dto.request.CustomerUpdateRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final PersonRepository personRepository;
     private final CustomerMapper mapper;
+    private final CustomerEventPublisher publisher;
 
     @Transactional
     public CustomerResponseDTO create(CustomerCreateRequestDTO dto) {
@@ -41,9 +43,16 @@ public class CustomerService {
                 .build();
 
         CustomerEntity saved = customerRepository.save(customer);
+
+        publisher.publishCreated(
+                saved.getId(),
+                saved.getPerson().getNombre(),
+                saved.getPerson().getIdentificacion(),
+                Boolean.TRUE.equals(saved.getEstado())
+        );
+
         return mapper.toResponse(saved);
     }
-
 
     @Transactional(readOnly = true)
     public CustomerResponseDTO getById(Long id) {
@@ -77,15 +86,25 @@ public class CustomerService {
         }
 
         CustomerEntity saved = customerRepository.save(customer);
+
+        publisher.publishUpdated(
+                saved.getId(),
+                saved.getPerson().getNombre(),
+                saved.getPerson().getIdentificacion(),
+                Boolean.TRUE.equals(saved.getEstado())
+        );
+
         return mapper.toResponse(saved);
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!customerRepository.existsById(id)) {
-            throw new NotFoundException("Cliente no encontrado");
-        }
-        customerRepository.deleteById(id);
+        CustomerEntity customer = customerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Cliente no encontrado"));
+
+        customerRepository.delete(customer);
+
+        publisher.publishDeleted(id);
     }
 
     private String hash(String raw) {

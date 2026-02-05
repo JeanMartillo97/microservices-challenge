@@ -66,6 +66,34 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "http://localhost:8082/cuentas",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"numeroCuenta\": \"478758\",\r\n  \"tipoCuenta\": \"AHORROS\",\r\n  \"saldoInicial\": 2000,\r\n  \"estado\": true,\r\n  \"clienteId\": 1\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8082/cuentas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8082",
+          "path": [
+            "cuentas"
+          ]
+        }
+      },
+      "response": []
     }
   ]
 }
