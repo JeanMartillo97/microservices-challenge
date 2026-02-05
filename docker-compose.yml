@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: banking-postgres
+    environment:
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: banking-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: it
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer_db
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SERVER_PORT: "8081"
+      SERVER_ADDRESS: "0.0.0.0"
+    ports:
+      - "8081:8081"
+
+  account-service:
+    build:
+      context: .
+      dockerfile: account-service/Dockerfile
+    container_name: account-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: it
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/account_db
+      SPRING_DATASOURCE_USERNAME: banking
+      SPRING_DATASOURCE_PASSWORD: banking
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SERVER_PORT: "8082"
+      SERVER_ADDRESS: "0.0.0.0"
+      APP_CUSTOMER_SERVICE_BASE_URL: http://customer-service:8081
+    ports:
+      - "8082:8082"
+
+volumes:
+  pgdata:
