@@ -1,0 +1,71 @@
+{
+  "info": {
+    "_postman_id": "844b895e-9513-4081-8c8e-157b555b22c8",
+    "name": "Account",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "16895818"
+  },
+  "item": [
+    {
+      "name": "http://localhost:8082/movimientos",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"accountId\": 1,\r\n  \"tipoMovimiento\": \"RETIRO\",\r\n  \"valor\": 50\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8082/movimientos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8082",
+          "path": [
+            "movimientos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8082/reportes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/reportes?clienteId=1&fechaInicio=2026-02-01T00:00:00-05:00&fechaFin=2026-02-10T23:59:59-05:00",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8082",
+          "path": [
+            "reportes"
+          ],
+          "query": [
+            {
+              "key": "clienteId",
+              "value": "1"
+            },
+            {
+              "key": "fechaInicio",
+              "value": "2026-02-01T00:00:00-05:00"
+            },
+            {
+              "key": "fechaFin",
+              "value": "2026-02-10T23:59:59-05:00"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
